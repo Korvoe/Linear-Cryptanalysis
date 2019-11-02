@@ -1,43 +1,75 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
+// One round of encryption
+int* encryption_round(int *input, int *subkey, int *output);
 int s_box(int input);
-int* encryption_round(int *input, int *subkey);
+int* encryption(int *input, int **subkeys, int *output);
 
 void main()
 {
+  // Key and subkey memory allocation.
   int* Key = malloc(20*sizeof(*Key));
-  int* Plaintext = malloc(4*sizeof(*Plaintext));
-  int* Ciphertext = malloc(4*sizeof(*Ciphertext));
-  int* K1 = malloc(4*sizeof(*K1));
-  int* K2 = malloc(4*sizeof(*K2));
-  int* K3 = malloc(4*sizeof(*K3));
-  int* K4 = malloc(4*sizeof(*K4));
-  int* K5 = malloc(4*sizeof(*K5));
+  int **Subkeys = (int**)malloc(5*sizeof(*Subkeys));
+    for (int i = 0; i < 5; i++)
+      Subkeys[i] = (int*)malloc(4*sizeof(*Subkeys));
 
+  // Plaintext and Ciphertext 2D arrays'(10000x4) memory allocation.
+  int **Plaintext = (int**)malloc(10000*sizeof(*Plaintext));
+    for (int i = 0; i < 10000; i++)
+      Plaintext[i] = (int*)malloc(4*sizeof(*Plaintext));
+  int **Ciphertext = (int**)malloc(10000*sizeof(*Ciphertext));
+    for (int i = 0; i < 10000; i++)
+      Ciphertext[i] = (int*)malloc(4*sizeof(*Ciphertext));
+
+  // Filling the Plaintext with random numbers from 0 to 15.
+  srand(time(NULL));
+    for (int i = 0; i < 10000;  i++)
+      for (int j = 0; j < 4; j++)
+        Plaintext[i][j] = rand()%16;
+
+  // Key and subkey generation.
   for (int i = 0; i < 0x14; i++)
   {
     Key[i] = i%0x10;
     if (i < 0x4)
-      K1[i%4] = i%0x10;
+      Subkeys[0][i%4] = i%0x10;
     else if (i >= 0x4 && i < 0x8)
-      K2[i%4] = Key[i];
+      Subkeys[1][i%4] = Key[i];
     else if (i >= 0x8 && i < 0xc)
-      K3[i%4] = Key[i];
+      Subkeys[2][i%4] = Key[i];
     else if (i >= 0xc && i < 0x10)
-      K4[i%4] = Key[i];
+      Subkeys[3][i%4] = Key[i];
     else if (i >= 0x10)
-      K5[i%4] = Key[i];
+      Subkeys[4][i%4] = Key[i];
   }
-  //Encryption
-  Ciphertext = encryption_round(Plaintext, K1);
-  Ciphertext = encryption_round(Plaintext, K2);
-  Ciphertext = encryption_round(Plaintext, K3);
-  Ciphertext = encryption_round(Plaintext, K4);
+
+  // Encryption
+  for (int i = 0; i < 10000; i++)
+    Ciphertext[i] = encryption(Plaintext[i],  Subkeys, Ciphertext[i]);
+
+  for (int i = 0; i < 5; i++){
+    for (int j = 0; j < 4; j++)
+      printf("%X", Plaintext[i][j]);
+    printf(" ");
+    for (int j = 0; j < 4; j++)
+      printf("%X", Ciphertext[i][j]);
+    printf("\n");
+    }
+}
+
+int* encryption_round(int *input, int *subkey, int *output)
+{
+  // XOR
   for (int i = 0; i < 4; i++)
-    Ciphertext[i] = Ciphertext[i]^K5[i];
-  for (int i = 0; i < 4; i++)
-    printf("%d ", Ciphertext[i]);
+    output[i] = input[i]^subkey[i];
+
+  // S-box
+  for (int i =0; i < 4; i++)
+    output[i] = s_box(output[i]);
+
+  return output;
 }
 
 int s_box(int input)
@@ -79,16 +111,15 @@ int s_box(int input)
   }
 }
 
-
-
-int* encryption_round(int *input, int *subkey)
+int* encryption(int *input, int **subkeys, int *output)
 {
-  int* output = malloc(4*sizeof(output));
+  output = encryption_round(input, subkeys[0], output);
+  output = encryption_round(output, subkeys[1], output);
+  output = encryption_round(output, subkeys[2], output);
+  output = encryption_round(output, subkeys[3], output);
+  // Last XOR
   for (int i = 0; i < 4; i++)
-    output[i] = input[i]^subkey[i];
-
-  for (int i =0; i < 4; i++)
-    output[i] = s_box(output[i]);
+    output[i] = output[i]^subkeys[4][i];
 
   return output;
 }
