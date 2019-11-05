@@ -9,6 +9,10 @@ int* encryption(int *input, int **subkeys, int *output);
 
 void main()
 {
+  FILE *fp1 = fopen("plaintext.txt", "w+");
+  FILE *fp2 = fopen("ciphertext.txt", "w+");
+  char value = 0;
+  char str[5];
   // Key and subkey memory allocation.
   int* Key = malloc(20*sizeof(*Key));
   int **Subkeys = (int**)malloc(5*sizeof(*Subkeys));
@@ -49,14 +53,17 @@ void main()
   for (int i = 0; i < 10000; i++)
     Ciphertext[i] = encryption(Plaintext[i],  Subkeys, Ciphertext[i]);
 
-  for (int i = 0; i < 5; i++){
-    for (int j = 0; j < 4; j++)
-      printf("%X", Plaintext[i][j]);
-    printf(" ");
-    for (int j = 0; j < 4; j++)
-      printf("%X", Ciphertext[i][j]);
-    printf("\n");
-    }
+  for (int i = 0; i < 10000; i++)
+      for (int j = 0; j < 4; j++){
+        value = Plaintext[i][j];
+        fwrite(&value, sizeof(value), 1, fp1);
+        value = Ciphertext[i][j];
+        fwrite(&value, sizeof(value), 1, fp2);
+        printf("%X-%X ",Plaintext[i][j], Ciphertext[i][j]);
+      }
+
+  fclose(fp1);
+  fclose(fp2);
 }
 
 int* encryption_round(int *input, int *subkey, int *output)
