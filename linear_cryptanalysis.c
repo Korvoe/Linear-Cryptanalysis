@@ -4,12 +4,12 @@
 
 void main()
 {
-  char ch1, ch2;
-  FILE *fp1, *fp2;
+  // Read 10000 plaintext-ciphertext pairs from 2 files, which store them respectively.
   static int Plaintext[10000][4] = {0};
   static int Ciphertext[10000][4]  = {0};
   int counter1 = 0, counter2 = 0;
-
+  char ch1, ch2;
+  FILE *fp1, *fp2;
   fp1 = fopen("plaintext.txt", "rb");
   fp2 = fopen("ciphertext.txt", "rb");
   while( ((ch1 = fgetc(fp1)) != EOF) &&
@@ -23,7 +23,4 @@ void main()
     }
   }
 
-  for (int i = 0; i < 10000; i++)
-    for (int j = 0; j < 4; j++)
-      printf("%X-%X ", Plaintext[i][j], Ciphertext[i][j]);
 }
