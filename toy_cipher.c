@@ -176,7 +176,6 @@ int* encryption(int *input, int **subkeys, int *output)
   // Last XOR
   for (int i = 0; i < 4; i++)
     output[i] = output[i]^subkeys[4][i];
-
   return output;
 }
 
